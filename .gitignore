@@ -1,0 +1,36 @@
+# Data & artifacts (không commit dữ liệu/model nặng)
+data/raw/
+data/processed/
+models/
+*.csv
+*.pt
+*.pkl
+*.pickle
+
+# Secrets
+.env
+
+# Reports figures sinh tự động (giữ thư mục, bỏ ảnh)
+reports/figures/*
+!reports/figures/.gitkeep
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+.ipynb_checkpoints/
+
+# Frontend (Next.js)
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/.env*.local
+frontend/next-env.d.ts
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/

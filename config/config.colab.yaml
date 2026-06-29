@@ -1,0 +1,60 @@
+# =============================================================
+# Cấu hình cho TRAIN TRÊN COLAB + Google Drive
+# Dùng: cfg = load_config("config/config.colab.yaml")
+#
+# Khác config.yaml: paths trỏ ĐƯỜNG DẪN TUYỆT ĐỐI trên Drive đã mount
+# (Config.abs_path() giữ nguyên path tuyệt đối, không ghép PROJECT_ROOT).
+# Sửa BASE bên dưới cho khớp thư mục Drive của anh.
+# =============================================================
+
+paths:
+  # BASE = /content/drive/MyDrive/btl-hocmay  (đổi nếu cần)
+  raw_dir: "/content/drive/MyDrive/btl-hocmay/data/raw"
+  processed_dir: "/content/drive/MyDrive/btl-hocmay/data/processed"
+  merged_file: "/content/drive/MyDrive/btl-hocmay/data/processed/final_merged.csv"
+  model_dir: "/content/drive/MyDrive/btl-hocmay/models"
+  figures_dir: "/content/drive/MyDrive/btl-hocmay/reports/figures"
+
+data:
+  # Bật nhiều sàn để train đầy đủ trên GPU
+  exchanges:
+    HOSE: "VNINDEX"
+    # HNX: "HNXINDEX"
+    # UPCOM: "UPCOMINDEX"
+  from_date: "2020-01-01"
+  fields: ["open", "high", "low", "close", "volume", "bu", "sd", "fn", "fs", "fb"]
+  adjusted: true
+  by: "1d"
+  max_tickers: null      # null = lấy tất cả (Colab GPU chịu được)
+
+features:
+  cols: ["open", "high", "low", "close", "volume"]
+  target_col: "close"
+
+windowing:
+  input_window: 30
+  output_window: 1
+
+split:
+  train_ratio: 0.70
+  val_ratio: 0.15
+  test_ratio: 0.15
+
+model:
+  emb_dim: 16
+  hidden_dim: 128
+  n_heads: 8
+  n_layers: 3
+  dropout: 0.1
+
+train:
+  batch_size: 64
+  num_epochs: 150
+  lr: 0.0001
+  weight_decay: 0.0001
+  grad_clip: 1.0
+  seed: 42
+  use_cuda: true         # Colab GPU
+
+select:
+  top_n: 10

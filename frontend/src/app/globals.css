@@ -1,0 +1,60 @@
+@import "tailwindcss";
+
+/* =============================================================
+   Theme khóa DARK (một theme cho toàn site — page theme lock).
+   Palette nền GitHub-Primer-dark: chuyên nghiệp, hợp dữ liệu tài chính.
+   1 màu nhấn (accent xanh dương) cho tương tác; xanh/đỏ CHỈ dùng cho
+   ngữ nghĩa tăng/giảm trong dữ liệu.
+   ============================================================= */
+:root {
+  color-scheme: dark;
+  --bg: #0d1117;
+  --surface: #161b22;
+  --surface-2: #1c2128;
+  --border: #30363d;
+  --text: #e6edf3;
+  --muted: #8b949e;
+  --accent: #58a6ff;        /* xanh dương — tương tác/thương hiệu */
+  --up: #3fb950;            /* tăng */
+  --down: #f85149;          /* giảm */
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-border: var(--border);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-up: var(--up);
+  --color-down: var(--down);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Số liệu dùng mono cho cảm giác cockpit/terminal */
+.tabular {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .fade-in { animation: fade-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) both; }
+}
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}

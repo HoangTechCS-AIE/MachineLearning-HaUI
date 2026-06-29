@@ -1,0 +1,58 @@
+# =============================================================
+# Cấu hình tập trung cho toàn bộ pipeline
+# (thay cho Config dataclass hardcode của DSCT)
+# =============================================================
+
+paths:
+  raw_dir: "data/raw"            # CSV crawl thô theo sàn
+  processed_dir: "data/processed" # CSV đã thêm chỉ báo + file merge
+  merged_file: "data/processed/final_merged.csv"
+  model_dir: "models"            # checkpoint, scalers, stock2id
+  figures_dir: "reports/figures" # biểu đồ xuất cho báo cáo
+
+data:
+  # Các sàn cần crawl: HOSE=VNINDEX, HNX=HNXINDEX, UPCOM=UPCOMINDEX
+  exchanges:
+    HOSE: "VNINDEX"
+    # HNX: "HNXINDEX"     # bật thêm nếu muốn cả 3 sàn
+    # UPCOM: "UPCOMINDEX"
+  from_date: "2023-01-01"
+  fields: ["open", "high", "low", "close", "volume", "bu", "sd", "fn", "fs", "fb"]
+  adjusted: true
+  by: "1d"
+  # Giới hạn số mã mỗi sàn để chạy thử nhanh khi local (null = lấy tất cả)
+  max_tickers: null
+
+features:
+  # Đặc trưng đưa vào model (bám DSCT)
+  cols: ["open", "high", "low", "close", "volume"]
+  target_col: "close"
+
+windowing:
+  input_window: 30   # số bước quá khứ
+  output_window: 1   # số bước dự báo (cố định = 1 như DSCT)
+
+split:
+  # Chia theo thời gian từng mã, KHÔNG shuffle xuyên thời gian
+  train_ratio: 0.70
+  val_ratio: 0.15
+  test_ratio: 0.15
+
+model:
+  emb_dim: 16        # kích thước embedding cho từng mã
+  hidden_dim: 128
+  n_heads: 8
+  n_layers: 3
+  dropout: 0.1
+
+train:
+  batch_size: 64
+  num_epochs: 150
+  lr: 0.0001
+  weight_decay: 0.0001
+  grad_clip: 1.0
+  seed: 42
+  use_cuda: true
+
+select:
+  top_n: 10          # số cổ phiếu chọn ra
