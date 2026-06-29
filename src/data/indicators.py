@@ -135,10 +135,12 @@ def build_features(cfg: Config | None = None) -> str:
     raw_dir = Path(cfg.abs_path(cfg.paths.raw_dir))
     proc_dir = Path(ensure_dir(cfg.abs_path(cfg.paths.processed_dir)))
 
-    raw_files = sorted(raw_dir.glob("*.csv"))
+    # Đọc đệ quy: hỗ trợ cả CSV nằm trong thư mục con (vd dataset DSCT: Filler_Data/HOSE/*.csv)
+    raw_files = sorted(p for p in raw_dir.rglob("*.csv") if "_with_TA" not in p.stem)
     if not raw_files:
         raise FileNotFoundError(
-            f"Không thấy CSV nào trong {raw_dir}. Chạy scripts/01_crawl.py trước."
+            f"Không thấy CSV nào trong {raw_dir} (đã tìm cả thư mục con). "
+            f"Chạy scripts/01_crawl.py, hoặc trỏ raw_dir vào folder dữ liệu có sẵn."
         )
 
     merged_parts = []

@@ -1,7 +1,8 @@
 # Data & artifacts (không commit dữ liệu/model nặng)
-data/raw/
-data/processed/
-models/
+# Neo vào GỐC repo (dấu /) để KHÔNG nuốt nhầm package code src/models/
+/data/raw/
+/data/processed/
+/models/
 *.csv
 *.pt
 *.pkl
@@ -11,8 +12,8 @@ models/
 .env
 
 # Reports figures sinh tự động (giữ thư mục, bỏ ảnh)
-reports/figures/*
-!reports/figures/.gitkeep
+/reports/figures/*
+!/reports/figures/.gitkeep
 
 # Python
 __pycache__/
