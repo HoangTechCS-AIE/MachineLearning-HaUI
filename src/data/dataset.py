@@ -132,6 +132,28 @@ class MultiStockDataset(Dataset):
 # ---------------------------------------------------------------
 # Orchestration: từ file merged -> các df đã scale + scalers + mapping
 # ---------------------------------------------------------------
+def _ensure_window_fits(cfg: Config, train_df, val_df, test_df,
+                        ticker_col: str = "ticker") -> None:
+    """Tự co `input_window` nếu tập test quá ngắn để tạo cửa sổ (tránh 'tập test rỗng').
+
+    Mỗi mã cần > input_window + output_window dòng trong test mới có 1 cửa sổ. Nếu KHÔNG
+    mã nào đủ dài, giảm input_window cho khớp mã dài nhất (giữ tối thiểu 5). Chỉ giảm,
+    không tăng — nên data đủ dài thì input_window giữ nguyên (vd 30 như DSCT).
+    """
+    out = cfg.windowing.output_window
+    for split_name, part in [("train", train_df), ("val", val_df), ("test", test_df)]:
+        counts = part.groupby(ticker_col).size() if len(part) else pd.Series(dtype=int)
+        mx = int(counts.max()) if len(counts) else 0
+        need = cfg.windowing.input_window + out
+        print(f"[dataset] {split_name}: {len(part)} dòng / {len(counts)} mã "
+              f"| dài nhất {mx} dòng/mã (cần > {need})")
+        if split_name == "test" and mx < need:
+            new_win = max(5, mx - out - 1)
+            print(f"[dataset] ⚠️ Test quá ngắn -> tự giảm input_window "
+                  f"{cfg.windowing.input_window} → {new_win}.")
+            cfg.windowing.input_window = new_win
+
+
 def prepare_dataframes(cfg: Config | None = None, df: pd.DataFrame | None = None) -> dict:
     """Đọc final_merged.csv (hoặc nhận df), chia tập, fit scaler trên train, transform.
 
@@ -149,6 +171,7 @@ def prepare_dataframes(cfg: Config | None = None, df: pd.DataFrame | None = None
     train_df, val_df, test_df = split_per_stock(
         df, cfg.split.train_ratio, cfg.split.val_ratio
     )
+    _ensure_window_fits(cfg, train_df, val_df, test_df)
     scalers = fit_scalers(train_df, feature_cols)
 
     return {

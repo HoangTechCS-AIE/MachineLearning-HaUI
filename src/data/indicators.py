@@ -135,8 +135,13 @@ def build_features(cfg: Config | None = None) -> str:
     raw_dir = Path(cfg.abs_path(cfg.paths.raw_dir))
     proc_dir = Path(ensure_dir(cfg.abs_path(cfg.paths.processed_dir)))
 
-    # Đọc đệ quy: hỗ trợ cả CSV nằm trong thư mục con (vd dataset DSCT: Filler_Data/HOSE/*.csv)
-    raw_files = sorted(p for p in raw_dir.rglob("*.csv") if "_with_TA" not in p.stem)
+    # Đọc đệ quy: hỗ trợ CSV trong thư mục con. Bỏ qua file output của chính build_features
+    # (nằm trong processed_dir) để không đọc lại; KHÔNG lọc theo "_with_TA" vì data DSCT
+    # đặt tên file là *_with_TA.csv.
+    proc_resolved = proc_dir.resolve()
+    raw_files = sorted(
+        p for p in raw_dir.rglob("*.csv") if proc_resolved not in p.resolve().parents
+    )
     if not raw_files:
         raise FileNotFoundError(
             f"Không thấy CSV nào trong {raw_dir} (đã tìm cả thư mục con). "
