@@ -35,9 +35,9 @@ python src/config.py
 # Run a src module directly (relative imports require -m from project root)
 python -m src.train
 
-# Website: backend (port 8000) + frontend (port 3000)
-uvicorn backend.app:app --reload --port 8000     # from repo root; loads models/* once at startup
-cd frontend && npm install && npm run dev         # NEXT_PUBLIC_API_URL in frontend/.env.local
+# Website: backend (port 8188) + frontend (port 3188)
+uvicorn backend.app:app --reload --port 8188     # from repo root; loads models/* once at startup
+cd frontend && npm install && npm run dev         # runs on :3188; NEXT_PUBLIC_API_URL in frontend/.env.local
 ```
 
 There is **no automated test suite**. Verification is an end-to-end smoke run: set `data.max_tickers`

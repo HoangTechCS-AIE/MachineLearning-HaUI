@@ -48,13 +48,13 @@ python scripts/05_select_stocks.py --month 2024-03   # Top-N cổ phiếu
 Sau khi train xong, đặt `models/*` và `data/processed/final_merged.csv` vào repo rồi chạy:
 
 ```bash
-# 1) Backend API (cổng 8000) — từ thư mục gốc repo
-uvicorn backend.app:app --reload --port 8000
+# 1) Backend API (cổng 8188) — từ thư mục gốc repo
+uvicorn backend.app:app --reload --port 8188
 
-# 2) Frontend (cổng 3000) — terminal khác
+# 2) Frontend (cổng 3188) — terminal khác
 cd frontend
 npm install                 # lần đầu
-npm run dev                 # http://localhost:3000
+npm run dev                 # http://localhost:3188
 ```
 
 Backend nạp model một lần lúc khởi động; nếu chưa có model, API trả 503 và web hiện hướng dẫn

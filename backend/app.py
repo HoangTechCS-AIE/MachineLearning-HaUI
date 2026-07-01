@@ -1,7 +1,7 @@
 """FastAPI app phục vụ website dự báo cổ phiếu.
 
 Chạy (từ gốc project):
-    uvicorn backend.app:app --reload --port 8000
+    uvicorn backend.app:app --reload --port 8188
 
 Model + dữ liệu được nạp một lần lúc khởi động (xem backend/inference.py).
 Nếu chưa có model, các endpoint trả 503 kèm hướng dẫn — server vẫn chạy.

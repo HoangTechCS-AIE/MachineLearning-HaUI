@@ -21,8 +21,9 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from src.config import (Config, FeaturesConfig, ModelConfig, WindowingConfig,
-                        _section, load_config)
+from src.config import (Config, FeaturesConfig, ModelConfig, SplitConfig,
+                        WindowingConfig, _section, load_config)
+from src.data.dataset import apply_scalers, split_per_stock
 from src.data.scoring import REQUIRED, score_single
 from src.evaluate import evaluate, load_trained
 from src.predict import (load_recent_history, predict_next, predict_test,
@@ -54,6 +55,32 @@ def signal_label(score: float | None) -> str:
     return "Tiêu cực mạnh"
 
 
+def _build_prepared(cfg: Config, df: pd.DataFrame, scalers: dict,
+                    stock2id: dict) -> dict:
+    """Dựng `prepared` (train/val/test đã scale) DÙNG scaler + stock2id ĐÃ TẢI về,
+    thay vì để prepare_dataframes tự refit.
+
+    Cần thiết khi model được train bằng code DSCT (fit scaler trên toàn chuỗi, hoặc
+    thứ tự mã khác): nếu refit lại thì scaler/id embedding lệch so với lúc train,
+    khiến predict_test/evaluate cho ra giá sai. Ở đây scale val/test bằng ĐÚNG scaler
+    Colab và gán stock_id theo ĐÚNG stock2id Colab -> nhất quán với checkpoint.
+    """
+    feature_cols = list(cfg.features.cols)
+    df = df.dropna(subset=feature_cols).copy()
+    train_df, val_df, test_df = split_per_stock(
+        df, cfg.split.train_ratio, cfg.split.val_ratio
+    )
+    return {
+        "train": apply_scalers(train_df, scalers, feature_cols, stock2id),
+        "val": apply_scalers(val_df, scalers, feature_cols, stock2id),
+        "test": apply_scalers(test_df, scalers, feature_cols, stock2id),
+        "scalers": scalers,
+        "stock2id": stock2id,
+        "feature_cols": feature_cols,
+        "target_col": cfg.features.target_col,
+    }
+
+
 class Engine:
     """Singleton giữ model + dữ liệu trong RAM để phục vụ các request."""
 
@@ -65,6 +92,7 @@ class Engine:
         self.scalers = None
         self.stock2id = None
         self.df: pd.DataFrame | None = None
+        self.prepared: dict | None = None
         self.pred_df: pd.DataFrame | None = None
         self._eval_cache: dict | None = None
         self.history: dict = {"train_loss": [], "val_loss": []}
@@ -84,6 +112,9 @@ class Engine:
                 cfg.model = _section(ModelConfig, saved.get("model", {}))
                 cfg.windowing = _section(WindowingConfig, saved.get("windowing", {}))
                 cfg.features = _section(FeaturesConfig, saved.get("features", {}))
+                # split cũng phải khớp lúc train (DSCT dùng 0.8/0.0/0.2) để tái tạo
+                # đúng tập test — nếu không, test 15% quá ngắn -> "Tập test rỗng".
+                cfg.split = _section(SplitConfig, saved.get("split", {}))
 
             self.cfg = cfg
             self.model, self.scalers, self.stock2id, _ = load_trained(cfg)
@@ -95,8 +126,10 @@ class Engine:
             if hist_path.exists():
                 self.history = load_json(hist_path)
 
-            # Cache dự báo trên tập test (cho Top-N & evaluate) — chạy 1 lần.
-            self.pred_df = predict_test(cfg, model=self.model,
+            # Dựng prepared bằng scaler + stock2id ĐÃ TẢI (khớp checkpoint), rồi
+            # cache dự báo trên tập test (cho Top-N & evaluate) — chạy 1 lần.
+            self.prepared = _build_prepared(cfg, self.df, self.scalers, self.stock2id)
+            self.pred_df = predict_test(cfg, prepared=self.prepared, model=self.model,
                                         scalers=self.scalers, stock2id=self.stock2id)
             self.ready = True
             self.error = None
@@ -188,8 +221,8 @@ class Engine:
     def _eval(self) -> dict:
         if self._eval_cache is None:
             self._eval_cache = evaluate(
-                self.cfg, model=self.model, scalers=self.scalers,
-                stock2id=self.stock2id, plot=False,
+                self.cfg, prepared=self.prepared, model=self.model,
+                scalers=self.scalers, stock2id=self.stock2id, plot=False,
             )
         return self._eval_cache
 
