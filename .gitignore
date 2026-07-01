@@ -1,7 +1,6 @@
 # Data & artifacts (không commit dữ liệu/model nặng)
 # Neo vào GỐC repo (dấu /) để KHÔNG nuốt nhầm package code src/models/
 /data/raw/
-/data/processed/
 /models/
 *.csv
 *.pt
