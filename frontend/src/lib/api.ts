@@ -1,6 +1,6 @@
 // Client gọi backend FastAPI. Đổi địa chỉ bằng NEXT_PUBLIC_API_URL (.env.local).
 export const API_URL =
-  process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") || "http://localhost:8000";
+  process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") || "http://47.129.235.153:8188";
 
 // ---- Kiểu dữ liệu khớp backend/schemas.py ----
 export interface PricePoint {
