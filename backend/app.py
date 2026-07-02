@@ -29,8 +29,8 @@ app = FastAPI(title="BTL Học Máy — API dự báo cổ phiếu VN", version=
 
 app.add_middleware(
     CORSMiddleware,
-    # Cho phép frontend chạy ở bất kỳ cổng localhost nào (3000, 3001, …)
-    allow_origin_regex=r"http://(localhost|127\.0\.0\.1)(:\d+)?",
+    # Cho phép mọi nguồn gọi API (S3 static website, localhost, v.v.)
+    allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
