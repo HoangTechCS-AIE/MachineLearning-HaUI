@@ -109,12 +109,46 @@ class Engine:
             cfg_json = model_dir / "config.json"
             if cfg_json.exists():
                 saved = load_json(cfg_json)
-                cfg.model = _section(ModelConfig, saved.get("model", {}))
-                cfg.windowing = _section(WindowingConfig, saved.get("windowing", {}))
-                cfg.features = _section(FeaturesConfig, saved.get("features", {}))
-                # split cũng phải khớp lúc train (DSCT dùng 0.8/0.0/0.2) để tái tạo
+                
+                # config.json lưu cấu trúc phẳng (flat dict) do Colab xuất ra, 
+                # cần chuyển đổi thủ công sang cấu trúc phân cấp (nested) của project.
+                model_data = {
+                    "emb_dim": saved.get("emb_dim"),
+                    "hidden_dim": saved.get("hidden_dim"),
+                    "n_heads": saved.get("n_heads"),
+                    "n_layers": saved.get("n_layers"),
+                    "dropout": saved.get("dropout")
+                }
+                model_data = {k: v for k, v in model_data.items() if v is not None}
+                if model_data:
+                    cfg.model = _section(ModelConfig, model_data)
+
+                window_data = {
+                    "input_window": saved.get("input_window"),
+                    "output_window": saved.get("output_window")
+                }
+                window_data = {k: v for k, v in window_data.items() if v is not None}
+                if window_data:
+                    cfg.windowing = _section(WindowingConfig, window_data)
+
+                features_data = {}
+                if "features" in saved:
+                    features_data["cols"] = saved["features"]
+                if "target_col" in saved:
+                    features_data["target_col"] = saved["target_col"]
+                if features_data:
+                    cfg.features = _section(FeaturesConfig, features_data)
+
+                # split cũng phải khớp lúc train (Colab dùng 0.8/0.0/0.2) để tái tạo
                 # đúng tập test — nếu không, test 15% quá ngắn -> "Tập test rỗng".
-                cfg.split = _section(SplitConfig, saved.get("split", {}))
+                split_data = {}
+                if "train_ratio" in saved:
+                    tr = saved["train_ratio"]
+                    split_data["train_ratio"] = tr
+                    split_data["val_ratio"] = 0.0
+                    split_data["test_ratio"] = round(1.0 - tr, 2)
+                if split_data:
+                    cfg.split = _section(SplitConfig, split_data)
 
             self.cfg = cfg
             self.model, self.scalers, self.stock2id, _ = load_trained(cfg)

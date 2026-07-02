@@ -1,0 +1,14 @@
+# Requirements tối giản cho Docker (chỉ phục vụ API inference)
+# Lưu ý: PyTorch CPU-only được cài riêng trong Dockerfile, KHÔNG liệt kê ở đây
+numpy>=1.24
+pandas>=2.0
+scikit-learn>=1.3
+
+# Config & utils
+pyyaml>=6.0
+python-dotenv>=1.0
+tqdm>=4.66
+
+# Backend API
+fastapi>=0.110
+uvicorn[standard]>=0.29

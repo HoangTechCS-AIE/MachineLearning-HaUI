@@ -1,0 +1,25 @@
+# Bỏ qua git
+.git
+.gitignore
+
+# Bỏ qua môi trường ảo
+venv/
+env/
+.env
+
+# Bỏ qua các file cache của Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# Bỏ qua thư mục Frontend (chỉ deploy backend vào Docker)
+frontend/
+
+# Bỏ qua các thư mục không cần thiết cho môi trường chạy inference
+notebooks/
+.vscode/
+
+# Ignore macOS metadata
+.DS_Store

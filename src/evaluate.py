@@ -19,16 +19,33 @@ from .utils import (ensure_dir, get_device, load_json, load_pickle,
 
 
 def load_trained(cfg: Config, device=None):
-    """Tải checkpoint + scalers + stock2id và dựng lại model."""
+    """Tải checkpoint + scalers + stock2id và dựng lại model.
+    Hỗ trợ linh hoạt cả checkpoints chứa dict metadata hoặc chỉ chứa raw state_dict.
+    """
     device = device or get_device(cfg.train.use_cuda)
     model_dir = Path(cfg.abs_path(cfg.paths.model_dir))
-    ckpt = torch.load(model_dir / "model.pt", map_location=device)
-    model = build_model(cfg, ckpt["num_stocks"], ckpt["feature_dim"]).to(device)
-    model.load_state_dict(ckpt["model_state_dict"])
-    model.eval()
-    scalers = load_pickle(model_dir / "scalers.pkl")
+    
+    # Tải stock2id trước để đếm số lượng cổ phiếu (num_stocks) phòng hờ checkpoint cũ thiếu thông tin
     stock2id = load_json(model_dir / "stock2id.json")
     stock2id = {k: int(v) for k, v in stock2id.items()}
+    num_stocks = len(stock2id)
+    feature_dim = len(cfg.features.cols)
+    
+    ckpt = torch.load(model_dir / "model.pt", map_location=device)
+    
+    # Hỗ trợ cả 2 định dạng checkpoint
+    if isinstance(ckpt, dict) and "model_state_dict" in ckpt:
+        state_dict = ckpt["model_state_dict"]
+        num_stocks = ckpt.get("num_stocks", num_stocks)
+        feature_dim = ckpt.get("feature_dim", feature_dim)
+    else:
+        state_dict = ckpt
+        
+    model = build_model(cfg, num_stocks, feature_dim).to(device)
+    model.load_state_dict(state_dict)
+    model.eval()
+    
+    scalers = load_pickle(model_dir / "scalers.pkl")
     return model, scalers, stock2id, device
 
 
